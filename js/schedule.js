@@ -52,7 +52,7 @@ var Range = Model.extend({
 
     startChunk: function(block) {
         var startChunk = this.get('start').chunkIndex();
-        if (block != this.startBlock()) {
+        if (block && block != this.startBlock()) {
             startChunk = 0;
         }
         return startChunk;
@@ -69,11 +69,16 @@ var Range = Model.extend({
 
     endChunk: function(block) {
         var endChunk = this.get('end').chunkIndex() - 1;
-        if (endChunk == -1 || block != this.endBlock()) {
+        if (endChunk == -1 || (block && block != this.endBlock())) {
             endChunk = Block.prototype.numChunks - 1;
         }
 
         return endChunk;
+    },
+
+    chunkLength: function() {
+        return (this.endBlock() - this.startBlock()) * Block.prototype.numChunks +
+            this.endChunk() - this.startChunk() + 1;
     }
 });
 
@@ -217,7 +222,7 @@ var Day = Model.extend({
     allEvents: function() {
         var blocks = this.get('blocks').map(function(block) {
             return _.map(block.get('chunks'), function(chunk) {
-                return _.map(chunk.get('events'), function(e) { return [e.get('name')]; });
+                return chunk.get('events');
             });
         });
 
@@ -322,6 +327,10 @@ var Event = Model.extend({
         }
 
         this.set('range', new Range({start: options.start, end: options.end}));
+    },
+
+    length: function() {
+        return this.get('range').chunkLength();
     }
 
 });

@@ -5,6 +5,15 @@
 <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.1.1/css/bootstrap-combined.min.css" rel="stylesheet">
 <style>
 .time { font-size: .875em; }
+td.time { width: 5%; }
+#schedule td { position: relative; }
+#schedule td div { position: absolute; border-radius: .25em; }
+.e1of1 { width: 85%; left: 10%;  background-color: #ccc; }
+.e1of2 { width: 40%; left: 5%;  background-color: #cce; }
+.e2of2 { width: 40%; left: 50%; background-color: #cec; }
+.e1of3 { width: 30%; left: 3%;  background-color: #ecc; }
+.e2of3 { width: 30%; left: 36%; background-color: #eec; }
+.e3of3 { width: 30%; left: 69%; background-color: #cee; }
 </style>
 </head>
 <body>
@@ -24,7 +33,7 @@
 <div class="row">
   <div class="span10 offset1">
 
-    <table class="table table-bordered table-hover">
+    <table id="schedule" class="table table-bordered table-hover">
       <tr>
         <th>&nbsp;</th>
         <th>M</th>
