@@ -5,88 +5,130 @@ var Collection = Backbone.Collection;
 
 var Time = Model.extend({
 
-    initialize: function() {
-        var mAdjusted = this.get('minutes') - 5,
-            hAdjusted = this.get('hours');
-
-        if (mAdjusted < 0) {
-            mAdjusted += 60;
-            hAdjusted--;
-        }
-
-        this.set('_hours', hAdjusted);
-        this.set('_minutes', mAdjusted);
+    initialize: function(options) {
+        this.set('_time',
+                options.hours * 60 +
+                options.minutes);
     },
 
-    blockIndex: function() {
-        var hIndex = this.get('_hours') - Day.prototype.START.get('_hours'),
-            mIndex = this.get('_minutes') >= 30 ? 1 : 0;
-
-        return hIndex * 2 + mIndex;
-    },
-
+    // new Time().chunkIndex
     chunkIndex: function() {
-        return Math.floor(this.get('_minutes') % 30 / 5);
+        var delta = this.get('_time') - Day.START.get('_time');
+        return Math.floor(delta / 5);
+    }
+
+}, {
+    // Time.create
+    create: function(hours, minutes) {
+        // only handles up to 59 "extra" minutes
+        if (minutes >= 60) {
+            minutes -= 60;
+            hours++;
+        }
+        // handle the afternoon scenario
+        if (hours < 9) {
+            hours += 12;
+        }
+        return new Time({hours: hours, minutes: minutes});
+        },
+
+    // Time.fromIndex
+    fromIndex: function(index) {
+            var minutes = index * Chunk.prototype.length;
+        var hours = Math.floor(minutes / 60);
+        minutes %= 60;
+
+        return Time.create(hours + Day.START.get('hours'),
+                           minutes + Day.START.get('minutes'));
     }
 });
-
-Time.create = function(hours, minutes) {
-    // only handles up to 59 "extra" minutes
-    if (minutes >= 60) {
-        minutes -= 60;
-        hours++;
-    }
-    // handle the afternoon scenario
-    if (hours < 9) {
-        hours += 12;
-    }
-    return new Time({hours: hours, minutes: minutes});
-};
 
 
 var Range = Model.extend({
 
-    startBlock: function() {
-        return this.get('start').blockIndex();
-    },
-
     startChunk: function(block) {
-        var startChunk = this.get('start').chunkIndex();
-        if (block && block != this.startBlock()) {
-            startChunk = 0;
-        }
-        return startChunk;
-    },
-
-    endBlock: function() {
-        var endBlock = this.get('end').blockIndex();
-        if (this.get('end').chunkIndex() == 0) {
-            endBlock--;
-        }
-
-        return endBlock;
+        return this.get('start').chunkIndex();
     },
 
     endChunk: function(block) {
-        var endChunk = this.get('end').chunkIndex() - 1;
-        if (endChunk == -1 || (block && block != this.endBlock())) {
-            endChunk = Block.prototype.numChunks - 1;
-        }
-
-        return endChunk;
+        return this.get('end').chunkIndex() - 1;
     },
 
     chunkLength: function() {
-        return (this.endBlock() - this.startBlock()) * Block.prototype.numChunks +
-            this.endChunk() - this.startChunk() + 1;
+        return this.endChunk() - this.startChunk() + 1;
+    },
+
+    minutes: function() {
+        var start = this.get('start'),
+            end = this.get('end');
+
+        return (end.get('hours') - start.get('hours')) * 60 +
+            end.get('minutes') - start.get('minutes');
+    }
+
+}, {
+
+    // Range.makeRange
+    makeRange: function(start, end) {
+        return new Range({start: start, end: end});
+    }
+
+});
+
+
+var Day = Model.extend({
+
+    NAMES: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+
+    START: Time.create(9, 05),
+    END: Time.create(15, 15),
+
+    initialize: function(options) {
+        this.set('schedule', options.schedule);
+        this.set('chunks', options.chunks || Chunks.makeDay(this));
+    },
+
+    merge: function(that, into) {
+        var merged = new Day({schedule: this.get('schedule'), chunks: new Chunks({day: null})});
+
+        // TODO: use _.each()'s index parameter to avoid this whackness
+        _.each(_.zip(this.get('chunks').models, that.get('chunks').models), function(chunkPair, index) {
+            var thisChunk = chunkPair[0],
+                thatChunk = chunkPair[1];
+            merged.get('chunks').add(thisChunk.merge(thatChunk));
+        });
+
+        return merged;
+    },
+
+    insert: function(event) {
+        this.get('chunks').at(event.get('range').startChunk()).insert(event);
+    },
+
+    // allEvents is a helper that sets up some bookkeeping
+    // properties for the ScheduleView, consider moving it there
+    allEvents: function() {
+        return this.get('chunks').map(function(chunk) {
+            var events = chunk.get('events');
+            events.eventCount = events.length;
+            events.slots = {};
+            return events;
+        });
     }
 });
+
+Day.START = Day.prototype.START;
+Day.END = Day.prototype.END;
+Day.RANGE = Range.makeRange(Day.START, Day.END);
 
 
 var Chunk = Model.extend({
 
+    length: 5,
+
     initialize: function(options) {
         this.set('events', options.events || []);
+        this.set('time', Time.fromIndex(options.index));
     },
 
     merge: function(that) {
@@ -100,133 +142,28 @@ var Chunk = Model.extend({
         }
     },
 
+    // TODO: remove, just use get('time')
     time: function() {
-        var hours = this.get('block').index / 2;
-        var minutes = this.get('index') * 5;
-
-        if (Math.floor(hours) < hours) {
-            hours = Math.floor(hours);
-            minutes += 30;
-        }
-
-        var start = Time.create(Day.prototype.START.get(hours) + hours,
-                                Day.prototype.START.get(minutes) + minutes);
-
+        return this.get('time');
     }
 
 });
 
 
-var Block = Model.extend({
+var Chunks = Collection.extend({
 
-    numChunks: 6,
+    model: Chunk,
+    numChunks: Day.RANGE.minutes() / Chunk.prototype.length
 
-    makeChunks: function() {
-        var chunks = [];
-        _(this.numChunks).times(function(i) {
-            chunks.push(new Chunk({
-                index: i,
-                block: this
-            }));
-        }.bind(this));
-        return chunks;
-    },
-
-    initialize: function(options) {
-        this.set('day', options.day);
-        this.set('chunks', options.chunks || this.makeChunks());
-        this.set('index', options.index);
-    },
-
-    merge: function(that) {
-        var merged = new Block({day: this.get('day'), index: this.get('index')});
-
-        _.each(_.zip(this.get('chunks'), that.get('chunks')), function(chunks, index) {
-            var thisChunk = chunks[0],
-                thatChunk = chunks[1];
-            merged.get('chunks')[index] = thisChunk.merge(thatChunk);
+}, {
+    // Chunks.makeDay
+    makeDay: function(day) {
+        var dayChunks = new Chunks();
+        _.times(Chunks.prototype.numChunks, function(i) {
+            dayChunks.add(new Chunk({day: day, index: i}));
         });
 
-        return merged;
-    },
-
-    insert: function(event) {
-        var range = event.get('range');
-        var start = range.startChunk(this.get('index'));
-        var end = range.endChunk(this.get('index'));
-
-        // console.log('inserting', event, 'into chunks', start, 'through', end);
-
-        for (var i = start; i <= end; i++) {
-            // console.log('inserting', event, 'into chunk', i, this.get('chunks')[i]);
-            this.get('chunks')[i].insert(event);
-        }
-    }
-});
-
-
-var EmptyDay = Collection.extend({
-    model: Block,
-    numBlocks: 13
-});
-
-var SchoolDay = EmptyDay.extend({
-
-    initialize: function(models, options) {
-        this.day = options.day;
-        _(this.numBlocks).times(function(i) {
-            this.add(new Block({
-                day: this.day,
-                index: i
-            }));
-        }.bind(this));
-    }
-});
-
-
-var Day = Model.extend({
-
-    NAMES: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-
-    START: Time.create(9, 05),
-
-    END: Time.create(15, 05),
-
-    initialize: function(options) {
-        this.set('schedule', options.schedule);
-        this.set('blocks', options.blocks || new SchoolDay(null, {day: this}));
-    },
-
-    merge: function(that, into) {
-        var merged = new Day({schedule: this.get('schedule'), blocks: new EmptyDay()});
-
-        _.each(_.zip(this.get('blocks').models, that.get('blocks').models), function(blocks, index) {
-            var thisBlock = blocks[0],
-                thatBlock = blocks[1];
-            merged.get('blocks').add(thisBlock.merge(thatBlock));
-        });
-
-        return merged;
-    },
-
-    insert: function(event) {
-        var range = event.get('range');
-
-        // console.log('inserting', event, 'into blocks', range.startBlock(), 'through', range.endBlock());
-
-        for (var i = range.startBlock(); i <= range.endBlock(); i++) {
-            this.get('blocks').at(i).insert(event);
-        }
-    },
-
-    allEvents: function() {
-        var blocks = this.get('blocks').map(function(block) {
-            return _.map(block.get('chunks'), function(chunk) {
-                return chunk.get('events');
-            });
-        });
-
-        return _(blocks).reduce(function(chunks, b) { return chunks.concat(b); }, []);
+        return dayChunks;
     }
 });
 
@@ -236,9 +173,6 @@ var Schedule = Model.extend({
     initialize: function(options) {
         _.each(Day.prototype.NAMES, function(name) {
             this.set(name, new Day({name: name, schedule: this}));
-            this.on('change:' + name, function(evt, schedule, day) {
-                //day.set('schedule', schedule);
-            });
         }.bind(this));
     },
 
@@ -256,7 +190,6 @@ var Schedule = Model.extend({
 
     insert: function(event) {
         _.each(event.get('days'), function(day) {
-            // console.log('inserting', event, 'into', day);
             this.get(day).insert(event);
         }.bind(this));
     }
@@ -333,14 +266,14 @@ var Event = Model.extend({
         return this.get('range').chunkLength();
     }
 
+}, {
+    // Event.create
+    create: function(e, day) {
+        return new Event({
+            name: e[0],
+            start: Time.create(e[1][0], e[1][1]),
+            end: Time.create(e[2][0], e[2][1]),
+            days: day
+        });
+    }
 });
-
-
-Event.create = function(e, day) {
-    return new Event({
-        name: e[0],
-        start: Time.create(e[1][0], e[1][1]),
-        end: Time.create(e[2][0], e[2][1]),
-        days: day
-    });
-};
