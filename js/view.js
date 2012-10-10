@@ -1,5 +1,5 @@
 var ScheduleView = Backbone.View.extend({
-    rowTmpl: _.template('<tr><td class="time"><%= hours %>:<%= minutes %></td><% for (var day in days) { %><td><% for (var i = 0; i < days[day].length; i++) { %><div class="e<%= days[day][i].index %>of<%= days[day][i].max %>" style="height: <%= 20 * days[day][i].length %>px;"><%= days[day][i].name %></div><% } %></td><% } %></tr>'),
+    rowTmpl: _.template('<tr><td class="time"><%= hours %>:<%= minutes %></td><% for (var day in days) { %><td><% for (var i = 0; i < days[day].length; i++) { %><div class="e<%= days[day][i].index %>of<%= days[day][i].max %>" style="height: <%= 22 * days[day][i].length - 16 %>px;"><%= days[day][i].name %></div><% } %></td><% } %></tr>'),
     headerTmpl: _.template('<tr><td class="time">&nbsp;</td><% for (var day in days) { %><th><%= day %></th><% } %></tr>'),
 
     initialize: function(options) {
