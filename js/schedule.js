@@ -89,12 +89,12 @@ var Day = Model.extend({
     },
 
     merge: function(that, into) {
-        var merged = new Day({schedule: this.get('schedule'), chunks: new Chunks({day: null})});
+        var merged = new Day({schedule: this.get('schedule'), chunks: new Chunks({day: null})}),
+            thatChunks = that.get('chunks');
 
         // TODO: use _.each()'s index parameter to avoid this whackness
-        _.each(_.zip(this.get('chunks').models, that.get('chunks').models), function(chunkPair, index) {
-            var thisChunk = chunkPair[0],
-                thatChunk = chunkPair[1];
+        this.get('chunks').each(function(thisChunk, index) {
+            var thatChunk = thatChunks.at(index);
             merged.get('chunks').add(thisChunk.merge(thatChunk));
         });
 
