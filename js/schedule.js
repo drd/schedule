@@ -89,10 +89,13 @@ var Day = Model.extend({
     },
 
     merge: function(that, into) {
-        var merged = new Day({schedule: this.get('schedule'), chunks: new Chunks({day: null})}),
+        var merged = new Day({
+            name: this.get('name'),
+            schedule: this.get('schedule'),
+            chunks: new Chunks(null, {day: null})
+        }),
             thatChunks = that.get('chunks');
 
-        // TODO: use _.each()'s index parameter to avoid this whackness
         this.get('chunks').each(function(thisChunk, index) {
             var thatChunk = thatChunks.at(index);
             merged.get('chunks').add(thisChunk.merge(thatChunk));
@@ -168,29 +171,57 @@ var Chunks = Collection.extend({
 });
 
 
+
+var Days = Collection.extend({
+    model: Day
+});
+
+
+var Week = Days.extend({
+
+    initialize: function(models, options) {
+        options = options || {};
+
+        _.each(Day.prototype.NAMES, function(name) {
+            var day = new Day({name: name, schedule: options.schedule});
+            this.add(day);
+            if (options.schedule) {
+                options.schedule._mapping[name] = day;
+            }
+        }.bind(this));
+    }
+});
+
 var Schedule = Model.extend({
 
     initialize: function(options) {
-        _.each(Day.prototype.NAMES, function(name) {
-            this.set(name, new Day({name: name, schedule: this}));
-        }.bind(this));
+        options = options || {};
+        this._mapping = {};
+        this._mapDay = _.bind(this._mapDay, this);
+
+        this.set('days', options.days || new Week(null, {schedule: this}));
+        this.get('days').on('add', this._mapDay);
+    },
+
+    _mapDay: function(day) {
+        day.set('schedule', this);
+        this._mapping[day.get('name')] = day;
     },
 
     merge: function(that) {
-        var merged = new Schedule();
+        var merged = new Schedule({days: new Days()});
 
-        _.each(Day.prototype.NAMES, function(day) {
-            var thisDay = this.get(day),
-                thatDay = that.get(day);
-            merged.set(day, thisDay.merge(thatDay));
-        }.bind(this));
+        this.get('days').each(function(thisDay, i) {
+            var thatDay = that.get('days').at(i);
+            merged.get('days').add(thisDay.merge(thatDay));
+        });
 
         return merged;
     },
 
     insert: function(event) {
         _.each(event.get('days'), function(day) {
-            this.get(day).insert(event);
+            this._mapping[day].insert(event);
         }.bind(this));
     }
 

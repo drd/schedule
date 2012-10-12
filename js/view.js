@@ -7,8 +7,8 @@ var ScheduleView = Backbone.View.extend({
     },
 
     render: function() {
-        var events = _.map(Day.prototype.NAMES, function(day) {
-            return this.schedule.get(day).allEvents();
+        var events = this.schedule.get('days').map(function(day) {
+            return day.allEvents();
         }.bind(this));
 
         var html = [this.headerTmpl({days: Day.prototype.names})];
@@ -94,11 +94,11 @@ var merge = function() {
 // var defAdamek = merge(Defazio, Adamek);
 // var cutNguGar = merge(CutLund, Nguyen, Gardenhire);
 // var flagelKing = merge(Flagel, King);
-// var burPyne = merge(Burton, Pyne);
-var cutLund = merge(CutLund);
+var burPyne = merge(Burton, Pyne);
+// var cutLund = merge(CutLund);
 // var carCav = merge(CarCav);
 // var daley = merge(Daley);
 
 
-scheduleView.schedule = cutLund;
+scheduleView.schedule = burPyne;
 scheduleView.render();
