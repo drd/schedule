@@ -143,7 +143,8 @@ schedules.get = function(key) {
 
 var vent = _.extend({}, Backbone.Events);
 
-var scheduleView = new ScheduleView({el: $('#schedule'), vent: vent});
+var scheduleView = new ScheduleView({el: $('#schedule'),
+                                     vent: vent});
 
 
 var selectorView = new SelectorView({el: $('#selector'),
