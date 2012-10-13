@@ -4,6 +4,11 @@ var ScheduleView = Backbone.View.extend({
 
     initialize: function(options) {
         this.schedule = options.schedule;
+        this.vent = options.vent;
+        this.vent.on('schedule:change', function(schedule) {
+            this.schedule = schedule;
+            this.render();
+        }.bind(this));
     },
 
     render: function() {
@@ -74,8 +79,34 @@ var ScheduleView = Backbone.View.extend({
     }
 });
 
-var scheduleView = new ScheduleView({el: $('#schedule')});
 
+var SelectorView = Backbone.View.extend({
+    optionTmpl: _.template('<option value="<%= key %>"><%= key %></option>'),
+
+    tagName: 'select',
+
+    initialize: function(options) {
+        this.schedules = options.schedules;
+        this.vent = options.vent;
+
+        this.$el.on('change', function() {
+            this.vent.trigger('schedule:change', this.schedules.get(this.$el.val()));
+        }.bind(this));
+
+        this.vent.on('init', function() {
+            var schedule = _.chain(this.schedules).pairs().first().first().value();
+            this.vent.trigger('schedule:change', this.schedules.get(schedule));
+        }.bind(this));
+    },
+
+    render: function() {
+        var html = _.map(this.schedules, function(v, k) {
+            return this.optionTmpl({value: v, key: k});
+        }.bind(this));
+        console.log(html);
+        $(this.el).html(html.join(''));
+    }
+});
 
 var merge = function() {
     return _.reduce(arguments, function(s, teacher) {
@@ -83,22 +114,41 @@ var merge = function() {
     }, Marjorie.schedule());
 }
 
-// var pyne = merge(Pyne);
-// var purdum = merge(Purdum);
-// var pynePhillips = merge(Pyne, Phillips);
-// var seashorePyne = merge(Seashore, Pyne);
-// var burton = merge(Burton);
-// var franzke = merge(Franzke);
-// var garStar = merge(Gardenhire, Starkovich);
-// var defazio = merge(Defazio);
-// var defAdamek = merge(Defazio, Adamek);
-// var cutNguGar = merge(CutLund, Nguyen, Gardenhire);
-// var flagelKing = merge(Flagel, King);
-var burPyne = merge(Burton, Pyne);
-// var cutLund = merge(CutLund);
-// var carCav = merge(CarCav);
-// var daley = merge(Daley);
+var schedules = {
+    pyne: [Pyne],
+    purdum: [Purdum],
+    pynePhillips: [Pyne, Phillips],
+    seashorePyne: [Seashore, Pyne],
+    burton: [Burton],
+    franzke: [Franzke],
+    garStar: [Gardenhire, Starkovich],
+    defazio: [Defazio],
+    defAdamek: [Defazio, Adamek],
+    cutNguGar: [CutLund, Nguyen, Gardenhire],
+    flagelKing: [Flagel, King],
+    burPyne: [Burton, Pyne],
+    cutLund: [CutLund],
+    carCav: [CarCav],
+    daley: [Daley]
+    };
+
+schedules.get = function(key) {
+    console.log(this, key, this[key]);
+    if (_.isArray(this[key])) {
+        console.log('merging');
+        this[key] = merge.apply(null, this[key]);
+    }
+    return this[key];
+};
+
+var vent = _.extend({}, Backbone.Events);
+
+var scheduleView = new ScheduleView({el: $('#schedule'), vent: vent});
 
 
-scheduleView.schedule = burPyne;
-scheduleView.render();
+var selectorView = new SelectorView({el: $('#selector'),
+                                     vent: vent,
+                                     schedules: schedules});
+selectorView.render();
+
+vent.trigger('init');
