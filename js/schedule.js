@@ -106,17 +106,6 @@ var Day = Model.extend({
 
     insert: function(event) {
         this.get('chunks').at(event.get('range').startChunk()).insert(event);
-    },
-
-    // allEvents is a helper that sets up some bookkeeping
-    // properties for the ScheduleView, consider moving it there
-    allEvents: function() {
-        return this.get('chunks').map(function(chunk) {
-            var events = chunk.get('events');
-            events.eventCount = events.length;
-            events.slots = {};
-            return events;
-        });
     }
 });
 

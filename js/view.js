@@ -11,9 +11,19 @@ var ScheduleView = Backbone.View.extend({
         }.bind(this));
     },
 
+    // sets up some bookkeeping properties for rendering
+    allEvents: function(day) {
+        return day.get('chunks').map(function(chunk) {
+            var events = chunk.get('events');
+            events.eventCount = events.length;
+            events.slots = {};
+            return events;
+        });
+    },
+
     render: function() {
         var events = this.schedule.get('days').map(function(day) {
-            return day.allEvents();
+            return this.allEvents(day);
         }.bind(this));
 
         var html = [this.headerTmpl({days: Day.prototype.names})];
@@ -26,6 +36,8 @@ var ScheduleView = Backbone.View.extend({
             // and for each day
             for (var j = 0; j < events.length; j++) {
                 var day = Day.prototype.NAMES[j];
+                // find the maximum number of events it shares a slot with
+                var max = events[j][i].eventCount;
                 // look at each event
                 _.each(events[j][i], function(e) {
                     e.slot = 1;
@@ -35,8 +47,6 @@ var ScheduleView = Backbone.View.extend({
                     }
                     events[j][i].slots[e.slot] = e;
 
-                    // find the maximum number of events it shares a slot with
-                    var max = events[j][i].eventCount;
                     for (var k = 0; k < e.length(); k++) {
                         if (k > 0) {
                             // mark this slot as filled
@@ -48,18 +58,16 @@ var ScheduleView = Backbone.View.extend({
                             }
                         }
                     }
-                    e.max = max;
-
                 });
-                // find all the events in this chunk that aren't hidden
                 days[day] = _.map(events[j][i], function(e) {
                     return {
                         name: e.get('name'),
                         length: e.length(),
-                        max: e.max,
+                        max: max,
                         slot: e.slot
                     };
                 });
+                days[day].cnt = events[j][i].eventCount;
             }
 
             html.push(this.rowTmpl({
