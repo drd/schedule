@@ -1,0 +1,12 @@
+<tr>
+  <td class="time">{{ this.hours }}:{{ this.minutes }}</td>
+  {{#each this.days }}
+    <td>
+      {{#each this }}
+        <div class="e{{this.slot}}of{{this.max}}" style="height: {{ this.height }}px;">
+          {{ this.name }}
+        </div>
+      {{/each }}
+    </td>
+  {{/each }}
+</tr>

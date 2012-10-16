@@ -2,8 +2,8 @@ define(['app/constants', 'app/models/teacher', 'app/models/grade', 'app/models/d
 
     var exports = {};
 
-    var Nina = new Teacher({name: 'Nina', grade: ERC});
-    var Marjorie = new Teacher({name: 'Marjorie', grade: SLP});
+    var Nina = new Teacher({name: 'Nina', grade: Grade.ERC});
+    var Marjorie = new Teacher({name: 'Marjorie', grade: Grade.SLP});
 
     var grades = {
         KG: [['I', [ 1, 35], [ 2, 05]],
