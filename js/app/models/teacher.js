@@ -4,7 +4,7 @@ define(['backbone', 'app/models/schedule'], function(Backbone, Schedule) {
         attrs: ['name', 'grade', 'schedule'],
 
         initialize: function() {
-            this.set('schedule', new Schedule());
+            this.set('schedule', new Schedule({name: this.get('name')}));
         },
 
         schedule: function() {

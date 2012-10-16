@@ -4,7 +4,8 @@
     <td>
       {{#each this }}
         <div class="e{{this.slot}}of{{this.max}}" style="height: {{ this.height }}px;">
-          {{ this.name }}
+          <span class="name">{{ this.name }}</span>
+          <span class="schedule">{{ this.schedule }}</span>
         </div>
       {{/each }}
     </td>

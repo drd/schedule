@@ -6,6 +6,7 @@ define(['backbone', 'app/collections/days', 'app/collections/week'], function(Ba
             this._mapping = {};
             this._mapDay = _.bind(this._mapDay, this);
 
+            this.set('name', options.name || '<anon>');
             this.set('days', options.days || new Week(null, {schedule: this}));
             this.get('days').on('add', this._mapDay);
         },
@@ -27,6 +28,7 @@ define(['backbone', 'app/collections/days', 'app/collections/week'], function(Ba
         },
 
         insert: function(event) {
+            event.set('scheduleName', this.get('name'));
             _.each(event.get('days'), function(day) {
                 this._mapping[day].insert(event);
             }.bind(this));

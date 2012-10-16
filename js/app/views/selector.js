@@ -22,7 +22,6 @@ define(['backbone'], function(Backbone) {
             var html = _.map(this.schedules, function(v, k) {
                 return this.optionTmpl({value: v, key: k});
             }.bind(this));
-            console.log(html);
             $(this.el).html(html.join(''));
         }
     });

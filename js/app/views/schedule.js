@@ -71,7 +71,8 @@ define([
                             length: e.length(),
                             height: e.length() * 22 - 16,
                             max: max,
-                            slot: e.slot
+                            slot: e.slot,
+                            schedule: e.get('scheduleName')
                         };
                     });
                     d.cnt = events[j][i].eventCount;

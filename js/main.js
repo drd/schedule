@@ -30,9 +30,7 @@ require(
         };
 
         schedules.get = function(key) {
-            console.log(this, key, this[key]);
             if (_.isArray(this[key])) {
-                console.log('merging');
                 this[key] = merge.apply(null, this[key]);
             }
             return this[key];

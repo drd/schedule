@@ -36,7 +36,7 @@ define(['app/constants', 'app/models/teacher', 'app/models/grade', 'app/models/d
     _(grades).each(function(events, grade) {
         var grade = this[grade] = new Grade({name: grade});
         _(events).each(function(e) {
-            _(Day.prototype.NAMES).each(function(day) {
+            _(Day.NAMES).each(function(day) {
                 grade.get('schedule').insert(Event.create(e, day));
             });
         });
@@ -431,7 +431,7 @@ define(['app/constants', 'app/models/teacher', 'app/models/grade', 'app/models/d
     _(lunch).each(function(times, teacher) {
         var teacher = exports[teacher];
         times.unshift('Lunch');
-        _(Day.prototype.NAMES).each(function(day) {
+        _(Day.NAMES).each(function(day) {
             teacher.get('schedule').insert(Event.create(times, day));
         });
     });
@@ -439,7 +439,7 @@ define(['app/constants', 'app/models/teacher', 'app/models/grade', 'app/models/d
     _(recess).each(function(times, teacher) {
         var teacher = exports[teacher];
         times.unshift('Recess');
-        _(Day.prototype.NAMES).each(function(day) {
+        _(Day.NAMES).each(function(day) {
             teacher.get('schedule').insert(Event.create(times, day));
         });
     });
