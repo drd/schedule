@@ -18,7 +18,7 @@
 
 ## Data model
 - are chunks necessary except for in the view?
--- if not, a schedule could just be a collection of events, which are then mapped into chunks by the ScheduleView
+ - if not, a schedule could just be a collection of events, which are then mapped into chunks by the ScheduleView
 
 
 # TODONE
