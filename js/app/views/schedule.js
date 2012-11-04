@@ -7,10 +7,10 @@ define([
     var ScheduleView = Backbone.View.extend({
 
         initialize: function(options) {
-            this.schedule = options.schedule;
+            this.schedules = options.schedules;
             this.vent = options.vent;
             this.vent.on('schedule:change', function(schedule) {
-                this.schedule = schedule;
+                this.schedule = this.schedules.get(schedule);
                 this.render();
             }.bind(this));
         },

@@ -476,7 +476,40 @@ define(['app/constants', 'app/models/teacher', 'app/models/grade', 'app/models/d
         });
     });
 
-    exports['Marjorie'] = Marjorie;
+    exports.Marjorie = Marjorie;
+
+    var merge = function() {
+        return _.reduce(arguments, function(s, teacher) {
+            return s.merge(teacher.schedule());
+        }, exports.Marjorie.schedule());
+    };
+
+    var groups = {
+        pyne: [exports.Pyne],
+        purdum: [exports.Purdum],
+        pynePhillips: [exports.Pyne, exports.Phillips],
+        seashorePyne: [exports.Seashore, exports.Pyne],
+        burton: [exports.Burton],
+        franzke: [exports.Franzke],
+        garStar: [exports.Gardenhire, exports.Starkovich],
+        defazio: [exports.Defazio],
+        defAdamek: [exports.Defazio, exports.Adamek],
+        cutNguGar: [exports.CutLund, exports.Nguyen, exports.Gardenhire],
+        flagelKing: [exports.Flagel, exports.King],
+        burPyne: [exports.Burton, exports.Pyne],
+        cutLund: [exports.CutLund],
+        carCav: [exports.CarCav],
+        daley: [exports.Daley]
+    };
+
+    groups.get = function(key) {
+        if (_.isArray(this[key])) {
+            this[key] = merge.apply(null, this[key]);
+        }
+        return this[key];
+    };
+
+    exports.groups = groups;
 
     return exports;
 });
