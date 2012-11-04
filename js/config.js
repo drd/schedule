@@ -1,3 +1,4 @@
+
 var req = require.config({
 
     deps: ['main'],
@@ -15,18 +16,15 @@ var req = require.config({
 
     shim: {
 
-        underscore: {
-            exports: '_'
-        },
-
         backbone: {
-            deps: ['jquery', 'underscore'],
+            deps: ['underscore'],
             exports: 'Backbone'
         },
 
-        handlebars: {
-            exports: 'Handlebars'
+        underscore: {
+            exports: '_'
         }
+
     },
 
     hbs: {
@@ -35,3 +33,4 @@ var req = require.config({
         templateExtension: 'hbs'
     }
 });
+

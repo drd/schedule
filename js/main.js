@@ -1,10 +1,11 @@
 require(
     [
+        'jquery',
         'app/data',
         'app/views/schedule',
         'app/views/selector'
     ],
-    function(data, ScheduleView, SelectorView) {
+    function($, data, ScheduleView, SelectorView) {
         var merge = function() {
             return _.reduce(arguments, function(s, teacher) {
                 return s.merge(teacher.schedule());
