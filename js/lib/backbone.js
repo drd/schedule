@@ -13,6 +13,22 @@
   // Save a reference to the global object (`window` in the browser, `global`
   // on the server).
   var root = this;
+  var document = root.document;
+  var $ = root.$;
+  if (!document) {
+      var fs = require('fs');
+      var jsdom = require('jsdom');
+      var html = fs.readFileSync('index.html').toString();
+      var jq = fs.readFileSync('js/lib/jquery.min.js').toString();
+      jsdom.env({
+          html: html,
+          src: [jq],
+          done: function(err, window) {
+              document = window.document;
+              $ = window.jQuery;
+          }
+      });
+  }
 
   // Save the previous value of the `Backbone` variable, so that it can be
   // restored later on, if `noConflict` is used.

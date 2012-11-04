@@ -5,8 +5,6 @@ define([
     'hbs!app/templates/row'
 ], function(Backbone, Day, headerTmpl, rowTmpl) {
     var ScheduleView = Backbone.View.extend({
-        // rowTmpl: _.template('<tr><td class="time"><%= hours %>:<%= minutes %></td><% for (var day in days) { %><td><% for (var i = 0; i < days[day].length; i++) { %><div class="e<%= days[day][i].slot %>of<%= days[day][i].max %>" style="height: <%= 22 * days[day][i].length - 16 %>px;"><%= days[day][i].name %></div><% } %></td><% } %></tr>'),
-        // headerTmpl: _.template('<tr><td class="time">&nbsp;</td><% for (var day in days) { %><th><%= day %></th><% } %></tr>'),
 
         initialize: function(options) {
             this.schedule = options.schedule;
@@ -92,7 +90,8 @@ define([
                 }
             }
 
-            $(this.el).html(html.join(''));
+            this.el.innerHTML = html.join('');
+            // $(this.el).html(html.join(''));
         }
     });
 

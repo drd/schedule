@@ -3,7 +3,7 @@
 //     (c) 2009-2012 Jeremy Ashkenas, DocumentCloud Inc.
 //     Underscore may be freely distributed under the MIT license.
 
-(function() {
+var _ = (function() {
 
   // Baseline setup
   // --------------
@@ -55,14 +55,14 @@
   // backwards-compatibility for the old `require()` API. If we're in
   // the browser, add `_` as a global object via a string identifier,
   // for Closure Compiler "advanced" mode.
-  if (typeof exports !== 'undefined') {
-    if (typeof module !== 'undefined' && module.exports) {
-      exports = module.exports = _;
-    }
-    exports._ = _;
-  } else {
+  // if (typeof exports !== 'undefined') {
+  //   if (typeof module !== 'undefined' && module.exports) {
+  //     exports = module.exports = _;
+  //   }
+  //   exports._ = _;
+  // } else {
     root['_'] = _;
-  }
+  // }
 
   // Current version.
   _.VERSION = '1.4.2';
@@ -1197,4 +1197,5 @@
 
   });
 
+  return _; 
 }).call(this);
